@@ -18,11 +18,12 @@ So I decided to try make my own "perfect" tool for that purpose.
 * Actions execution (actual deletion of files to recycle bin and creation of hardlinks)
 * Count of groups of duplicates which have no actions assigned yet (aka "how much more groups I have to check?")
 * UI tests
+* Loading CloneSpy duplicates list by user's choice
 
 ## Features I want to implement in the nearest future:
-* Loading CloneSpy duplicates list by user's choice
 * Progress bar for files processing (need to put files processing into separate thread)
 * Open location of selected file or location of all files in selected group (only proof of concept is already implemented - need to open actual location instead of hardcoded)
+* More UI tests :)
 
 ## Features to implement even later:
 * Duplicates search
