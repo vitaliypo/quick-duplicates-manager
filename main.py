@@ -1,14 +1,13 @@
 import os
 import subprocess
 import sys  # sys нужен для передачи argv в QApplication
-import traceback
 from collections import Counter
-from operator import le, lt, gt
+from operator import lt, gt
 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import Qt, QModelIndex, QRunnable, pyqtSlot, QObject, pyqtSignal, QThreadPool
-from PyQt5.QtGui import QColor, QBrush, QKeySequence
-from PyQt5.QtWidgets import QTableWidgetItem, QTableView, QTableWidget, QHeaderView, QWidget, QMessageBox
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QTableView, QMessageBox
 from send2trash import send2trash
 
 from GUI import design
@@ -17,7 +16,7 @@ from data_model import CloneSpyResultsReader, TableModel, Column, Action, Valida
 
 def get_duplicates_list(
         filepath):  # temp list instead of real testing data
-    filepath = "C:\\Users\\iam-a\\Pictures\\clonespyexecutortest\\CloneSpyResult.txt"
+    # filepath = "C:\\Users\\iam-a\\Pictures\\clonespyexecutortest\\CloneSpyResult.txt"
     reader = CloneSpyResultsReader(filepath)
     duplicates = reader.reformat_data_to_model()
     return duplicates
@@ -25,33 +24,17 @@ def get_duplicates_list(
 
 class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def __init__(self,
-                 results_file_path="C:\\Users\\iam-a\\IdeaProjects\\PetProjects\\clonespy_executor\\CloneSpyResult.txt"):
+                 results_file_path="C:\\Users\\iam-a\\Pictures\\clonespyexecutortest\\CloneSpyResult.txt"):
 
         super().__init__()
         # init design
         self.setupUi(self)
 
         # tableview setting up
-        data = get_duplicates_list(results_file_path)
-
-        # dict to store hardlink and source pairs
-        self.hardlink_index_to_source_index = dict()
-
-        # assign model to view
-        # current_errors passed to TableModel only to set red color of row text when row causes error
-        self.current_errors = list()
-        self.groups_without_action_first_row_number = set()
-        self.model = TableModel(data, self.current_errors)
-        self.tableView.setModel(self.model)
-
-        self.all_groups_amount = self.model.get_amount_of_groups()
-        self.groups_have_actions_label.setText("Groups have actions: 0 of " + str(self.all_groups_amount))
-
-        self.tableView.setSelectionBehavior(QTableView.SelectRows)
-        QTableView.resizeColumnsToContents(self.tableView)
+        self.load_results_to_tableview(results_file_path)
 
         # add actions to buttons
-        # self.OpenResults.triggered.connect(self.browse_results_file)
+        self.OpenResults.triggered.connect(self.browse_results_file)
         self.actionDelete_sibling_duplicates.triggered.connect(self.mark_siblings_delete)
         self.actionHardlink_sibling_duplicates.triggered.connect(self.mark_siblings_hardlink)
         self.pushButton_2.clicked.connect(self.process_files)
@@ -74,9 +57,30 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.files_exterminated_question_window.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         self.files_exterminated_question_window.setDefaultButton(QMessageBox.No)
 
-    # def browse_results_file(self):
-    #     file = QtWidgets.QFileDialog.getOpenFileName(self, "Choose CloneSpy results file")
-    #
+    def load_results_to_tableview(self, file_path_string):
+        # tableview setting up
+        data = get_duplicates_list(file_path_string)
+
+        # dict to store hardlink and source pairs
+        self.hardlink_index_to_source_index = dict()
+
+        # assign model to view
+        # current_errors passed to TableModel only to set red color of row text when row causes error
+        self.current_errors = list()
+        self.groups_without_action_first_row_number = set()
+        self.model = TableModel(data, self.current_errors)
+        self.tableView.setModel(self.model)
+
+        self.all_groups_amount = self.model.get_amount_of_groups()
+        self.groups_have_actions_label.setText("Groups have actions: 0 of " + str(self.all_groups_amount))
+
+        self.tableView.setSelectionBehavior(QTableView.SelectRows)
+        QTableView.resizeColumnsToContents(self.tableView)
+
+    def browse_results_file(self):
+        chosen_file = QtWidgets.QFileDialog.getOpenFileName(self, "Choose CloneSpy results file")
+        file = chosen_file[0]
+        self.load_results_to_tableview(file)
 
     def refresh_current_error_message(self):
         current_error_str = None
@@ -445,13 +449,16 @@ def my_exception_hook(exctype, value, traceback):
     # Print the error and traceback
     print(exctype, value, traceback)
     # Call the normal Exception hook after
-    sys._excepthook(exctype, value, traceback)
+    sys.excepthook(exctype, value, traceback)
     sys.exit(1)
 
 
 if __name__ == '__main__':  # If we run the file directly and not import it
+    # The next code block is needed to correctly print exceptions to standard
+    # output because it didn't work by default for some reason
+
     # Back up the reference to the exceptionhook
-    sys._excepthook = sys.excepthook
+    # sys._excepthook = sys.excepthook
     # Set the exception hook to our wrapping function
     sys.excepthook = my_exception_hook
     main()
