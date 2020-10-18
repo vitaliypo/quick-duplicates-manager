@@ -1,5 +1,6 @@
 # Temp files
 tempfiles/
+.idea/vcs.xml
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,intellij
