@@ -1,6 +1,6 @@
 import os
 import subprocess
-import sys  # sys нужен для передачи argv в QApplication
+import sys  # needed to pass arvg (cmd argumants) to QApplication
 from collections import Counter
 from operator import lt, gt
 
@@ -339,6 +339,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
     def open_multiple_file_locations(self):
         # todo implement logic
+        # todo reuse open_single_file_location
         print("open_multiple_file_locations")
         subprocess.Popen(r'explorer /select,"C:\Users\iam-a\Pictures\photos_to_sync\testfile.jpg"')
         subprocess.Popen(r'explorer /select,"C:\Users\iam-a\Pictures\ScreenshotWin32_0026_Final.jpg"')
