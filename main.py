@@ -14,17 +14,14 @@ from GUI import design
 from data_model import CloneSpyResultsReader, TableModel, Column, Action, ValidationError, ValidationErrorType
 
 
-def get_duplicates_list(
-        filepath):  # temp list instead of real testing data
+def get_duplicates_list(filepath):
     reader = CloneSpyResultsReader(filepath)
     duplicates = reader.reformat_data_to_model()
     return duplicates
 
 
 class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
-    def __init__(self,
-                 results_file_path="./resources/CloneSpyResult.txt"
-                 ):
+    def __init__(self, results_file_path="./resources/CloneSpyResult.txt"):
 
         super().__init__()
         # init design
