@@ -16,7 +16,6 @@ from data_model import CloneSpyResultsReader, TableModel, Column, Action, Valida
 
 def get_duplicates_list(
         filepath):  # temp list instead of real testing data
-    # filepath = "C:\\Users\\iam-a\\Pictures\\clonespyexecutortest\\CloneSpyResult.txt"
     reader = CloneSpyResultsReader(filepath)
     duplicates = reader.reformat_data_to_model()
     return duplicates
@@ -24,7 +23,8 @@ def get_duplicates_list(
 
 class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def __init__(self,
-                 results_file_path="C:\\Users\\iam-a\\Pictures\\clonespyexecutortest\\CloneSpyResult.txt"):
+                 results_file_path="./resources/CloneSpyResult.txt"
+                 ):
 
         super().__init__()
         # init design
