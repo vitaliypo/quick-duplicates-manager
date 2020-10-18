@@ -1,0 +1,4 @@
+winshell==0.6
+Send2Trash==1.5.0
+pytest==6.0.1
+PyQt5==5.15.1
