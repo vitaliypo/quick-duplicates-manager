@@ -224,9 +224,6 @@
    <property name="text">
     <string>Open CloneSpy results</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
-   </property>
   </action>
   <action name="actionDelete_sibling_duplicates">
    <property name="text">

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\design.ui'
+# Form implementation generated from reading ui file 'design.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.2
 #
@@ -135,6 +135,5 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuMark.setTitle(_translate("MainWindow", "Mark"))
         self.OpenResults.setText(_translate("MainWindow", "Open CloneSpy results"))
-        self.OpenResults.setShortcut(_translate("MainWindow", "Ctrl+O"))
         self.actionDelete_sibling_duplicates.setText(_translate("MainWindow", "Delete sibling duplicates"))
         self.actionHardlink_sibling_duplicates.setText(_translate("MainWindow", "Hardlink sibling duplicates"))

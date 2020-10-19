@@ -46,8 +46,8 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         QtWidgets.QShortcut(QtCore.Qt.Key_H, self.tableView, self.grab_keypress_hardlink)
         QtWidgets.QShortcut(QtCore.Qt.Key_S, self.tableView, self.grab_keypress_source_for_hardlink)
         QtWidgets.QShortcut(QtCore.Qt.Key_N, self.tableView, self.grab_keypress_clear_action)
-        QtWidgets.QShortcut(QtCore.Qt.Key_O, self.tableView, self.open_single_file_location)
-        QtWidgets.QShortcut(QKeySequence('Ctrl+O'), self.tableView, self.open_multiple_file_locations)
+        QtWidgets.QShortcut(QtCore.Qt.Key_O, self.tableView, self.find_and_open_single_file_location)
+        QtWidgets.QShortcut(QKeySequence('Ctrl+O'), self.tableView, self.find_and_open_all_locations_in_current_group)
 
         # pre-configured question window to always have reference to it
         self.files_exterminated_question_window = QMessageBox(QMessageBox.NoIcon, 'Warning!', 'Message')
@@ -329,17 +329,31 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def assign_action_to_row(self, action, action_row_index):
         self.model.setData(action_row_index, action)
 
-    def open_single_file_location(self):
-        # todo implement logic
-        print("open_single_file_location")
-        subprocess.Popen(r'explorer /select,"C:\Users\iam-a\Pictures\photos_to_sync\testfile.jpg"')
+    def find_and_open_single_file_location(self):
+        path_string = self.find_selected_file_location()
+        self.open_file_location(path_string)
 
-    def open_multiple_file_locations(self):
-        # todo implement logic
-        # todo reuse open_single_file_location
-        print("open_multiple_file_locations")
-        subprocess.Popen(r'explorer /select,"C:\Users\iam-a\Pictures\photos_to_sync\testfile.jpg"')
-        subprocess.Popen(r'explorer /select,"C:\Users\iam-a\Pictures\ScreenshotWin32_0026_Final.jpg"')
+    def open_file_location(self, path_string):
+        print("Opening: " + path_string)
+        subprocess.Popen(r'explorer /select,"' + path_string + '"')
+
+    def find_selected_file_location(self):
+        current_row = self.tableView.currentIndex().row()
+        path_string = self.find_file_location(current_row)
+        return path_string
+
+    def find_file_location(self, row):
+        path_index = self.model.createIndex(row, Column.Path.index)
+        path_string = path_index.data(Qt.DisplayRole)
+        return path_string
+
+    def find_and_open_all_locations_in_current_group(self):
+        current_row = self.tableView.currentIndex().row()
+        current_group = self.model.createIndex(current_row, Column.Group.index).data(Qt.DisplayRole)
+        indexes_of_group = self.model.find_indexes_of_value(Column.Group.index, current_group)
+        for index in indexes_of_group:
+            path_string = self.find_file_location(index.row())
+            self.open_file_location(path_string)
 
     def process_files(self):
         print("process_files started")
