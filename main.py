@@ -135,10 +135,12 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         # todo refresh errors of only changed group instead of all groups (whole table)?
         self.current_errors.clear()
         amount_of_groups = self.all_groups_amount
-        last_recorded_row_number = 0
+        row_to_start_next_search = 0
         for group in range(1, amount_of_groups + 1):
             indexes_of_current_group = self.model.find_indexes_of_value(Column.Group.index, group,
-                                                                        last_recorded_row_number)
+                                                                        row_to_start_next_search)
+            # save it to start searching from this row in the next iteration
+            row_to_start_next_search = indexes_of_current_group[-1].row() + 1
             actions = list()
             index_to_action = dict()
             for group_index in indexes_of_current_group:
