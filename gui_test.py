@@ -14,7 +14,9 @@ from data_model import Column, Action, ValidationErrorType, ValidationError
 from main import ExampleApp
 
 
-class TestClass:  # TODO: refactoring, make parts of tests reusable
+class TestClass:
+    # TODO: refactoring, make parts of tests reusable
+    # TODO: remove old tests which are not working/covered by new ones
     def setup_method(self):
         base = "C:\\Users\\iam-a\\Pictures\\clonespyexecutortest"
         data_source = base + "\\source"
