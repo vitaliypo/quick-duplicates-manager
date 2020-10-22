@@ -23,6 +23,8 @@ So I decided to try make my own "perfect" tool for that purpose.
 
 ## Features I want to implement in the nearest future:
 * Progress bar for files processing (need to put files processing into separate thread)
+* Validation of possibility to create Hard links (e.g. files are on the same partition, on NTFS filesystem, etc...)
+* Refactor current code, make better structuring of classes and methods
 * More UI tests :)
 
 ## Features to implement even later:

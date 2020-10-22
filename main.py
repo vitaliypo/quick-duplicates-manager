@@ -470,7 +470,6 @@ def my_exception_hook(exctype, value, traceback):
 if __name__ == '__main__':  # If we run the file directly and not import it
     # The next code block is needed to correctly print exceptions to standard
     # output because it didn't work by default for some reason
-
     # Back up the reference to the exceptionhook
     # sys._excepthook = sys.excepthook
     # Set the exception hook to our wrapping function
