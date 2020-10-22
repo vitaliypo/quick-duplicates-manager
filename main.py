@@ -416,9 +416,8 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             index_to_action = dict()
             hardlink_indexes = list()
             source_for_hardlink_index = None
-            indexes_of_group = self.model \
-                .find_indexes_of_value(Column.Group.index, group_number,
-                                       last_index_recorded_row)  # todo check if absense of +1 affects (slows down?)
+            indexes_of_group = self.model.find_indexes_of_value(Column.Group.index, group_number,
+                                                                last_index_recorded_row)
             if len(indexes_of_group) != 0:
                 actions = list()
                 processed_values = list()
