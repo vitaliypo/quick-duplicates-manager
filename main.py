@@ -42,7 +42,8 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.actionHardlink_sibling_duplicates.triggered.connect(self.mark_siblings_hardlink)
         self.pushButton_2.clicked.connect(self.start_files_processing)
         self.process_files_thread = None
-        self.files_processor_worker = None
+        # self.files_processor_worker = None
+        self.buildWorker(0)
         self.works = [0]
 
         self.btn_next_error.clicked.connect(self.select_next_error_row)
@@ -296,16 +297,20 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.refresh_errors_list()
 
     def mark_siblings_hardlink(self):
-        self.mark_siblings(Action.hardlink.value)
+        self.mark_siblings(Action.hardlink)
         self.refresh_errors_list()
 
     def grab_keypress_delete(self):
-        self.assign_action_to_current_row(Action.delete.value)
-        self.refresh_errors_list()
+        indexes_selected = self.tableView.selectedIndexes()
+        if indexes_selected:
+            self.assign_action_to_current_row(Action.delete, indexes_selected)
+            self.refresh_errors_list()
 
     def grab_keypress_source_for_hardlink(self):
-        self.assign_action_to_current_row(Action.source.value)
-        self.refresh_errors_list()
+        indexes_selected = self.tableView.selectedIndexes()
+        if indexes_selected:
+            self.assign_action_to_current_row(Action.source, indexes_selected)
+            self.refresh_errors_list()
 
     def grab_keypress_hardlink(self):
         # todo check if files are on NTFS system
@@ -325,17 +330,19 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         #     paths.append(path)
         # for path in paths:
         #     drives.add(path.drive)
-
-        self.assign_action_to_current_row(Action.hardlink.value)
-        self.refresh_errors_list()
+        indexes_selected = self.tableView.selectedIndexes()
+        if indexes_selected:
+            self.assign_action_to_current_row(Action.hardlink, indexes_selected)
+            self.refresh_errors_list()
 
     def grab_keypress_clear_action(self):
-        self.assign_action_to_current_row(Action.none)
-        self.refresh_errors_list(False)
+        indexes_selected = self.tableView.selectedIndexes()
+        if indexes_selected:
+            self.assign_action_to_current_row(Action.none, indexes_selected)
+            self.refresh_errors_list(False)
 
-    def assign_action_to_current_row(self, action):
-        current_indexes = self.tableView.selectedIndexes()
-        action_row_index = current_indexes[Column.Action.index]
+    def assign_action_to_current_row(self, action, selected_indexes):
+        action_row_index = selected_indexes[Column.Action.index]
         self.assign_action_to_row(action, action_row_index)
 
     def assign_action_to_row(self, action, action_row_index):
@@ -402,7 +409,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
     #         thread.start()
 
     def start_files_processing(self):
-        self.buildWorker(0)
+        # self.buildWorker(0)
         self.process_files_thread.start()
 
     # def process_files(self):
@@ -472,7 +479,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
                 for index in indexes_of_group:
                     action_index = self.model.createIndex(index.row(), Column.Action.index)
                     processed_value_index = self.model.createIndex(index.row(), Column.Processed.index)
-                    action = self.model.data(action_index, Qt.DisplayRole)
+                    action = self.model.data(action_index, Qt.EditRole)
                     index_to_action[action_index] = action
                     actions.append(action)
                     processed_values.append(processed_value_index.data(Qt.DisplayRole))
@@ -482,11 +489,11 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
                     groups_to_be_exterminated.append(group_number)
 
                 for action_index, action in index_to_action.items():
-                    if action == Action.hardlink.value:
+                    if action == Action.hardlink:
                         hardlink_path_index = self.model.createIndex(action_index.row(), Column.Path.index)
                         # hardlink_path = hardlink_path_index.data(Qt.EditRole)
                         hardlink_indexes.append(hardlink_path_index)
-                    elif action == Action.source.value:
+                    elif action == Action.source:
                         source_for_hardlink_path_index = self.model.createIndex(action_index.row(), Column.Path.index)
                         # source_for_hardlink_path = source_for_hardlink_path_index.data(Qt.EditRole)
                         source_for_hardlink_index = source_for_hardlink_path_index
@@ -507,6 +514,7 @@ class FilesProcessor(QtCore.QObject):
 
     updateProgress = QtCore.pyqtSignal(tuple)
     finished = QtCore.pyqtSignal(int)
+    # todo add FAILEd signal to avoid UI hanging on errors
     # startProcessing = QtCore.pyqtSignal()
 
     def __init__(self, index, app):
@@ -517,6 +525,7 @@ class FilesProcessor(QtCore.QObject):
         self.link_to_app_class = app
 
     def work(self):
+        # print("Work started")
         groups_exterminated = self.link_to_app_class.groups_exterminated()
         # ask user for confirmation in case if some duplicate groups will be removed completely
         if len(groups_exterminated) > 0:
@@ -539,13 +548,14 @@ class FilesProcessor(QtCore.QObject):
 
         row_count = self.link_to_app_class.model.rowCount(0)
         rows_walked = 0
+        self.updateProgress.emit((self.id, rows_walked))
         for row in range(row_count):
             time.sleep(random.random() * .2)  # testing/dev imitation of work, todo remove in prod
             processed_index = self.link_to_app_class.model.createIndex(row, Column.Processed.index)
             processed_value = self.link_to_app_class.model.data(processed_index, Qt.EditRole)
             if not processed_value:
                 index = self.link_to_app_class.model.createIndex(row, Column.Action.index)
-                action = self.link_to_app_class.model.data(index, Qt.DisplayRole)
+                action = self.link_to_app_class.model.data(index, Qt.EditRole)
                 if action is not Action.none:
                     if action == Action.delete:
                         print("Delete file", row)
@@ -566,7 +576,7 @@ class FilesProcessor(QtCore.QObject):
                         self.link_to_app_class.mark_processed(source_for_hardlink_index.row())
             rows_walked += 1
             self.updateProgress.emit((self.id, rows_walked))
-
+            # print("work cycle finished")
         self.finished.emit(1)
 
 

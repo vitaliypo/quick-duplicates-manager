@@ -18,7 +18,7 @@ class TestClass:
     # TODO: refactoring, make parts of tests reusable
     # TODO: remove old tests which are not working/covered by new ones
     def setup_method(self):
-        base = "C:\\Users\\iam-a\\Pictures\\clonespyexecutortest"
+        base = ".\\resources\\test_data"
         data_source = base + "\\source"
         tempdir = base + "\\temp_dir"
         try:
@@ -29,13 +29,13 @@ class TestClass:
         copytree(data_source, tempdir)  # Throws file not found exception
 
         self.app = QApplication([])
-        self.ui = ExampleApp("C:\\Users\\iam-a\\Pictures\\clonespyexecutortest\\CloneSpyResult.txt")
+        self.ui = ExampleApp(".\\resources\\CloneSpyResult.txt")
         self.menu = self.ui.menuBar()
         self.ui.show()
         QTest.qWaitForWindowExposed(self.ui)
 
     def teardown_method(self):
-        rmtree("C:\\Users\\iam-a\\Pictures\\clonespyexecutortest\\temp_dir")
+        rmtree(".\\resources\\test_data\\temp_dir")
 
     @pytest.mark.parametrize("key, row, expected_action", [(Qt.Key_D, 0, "Delete"),
                                                            (Qt.Key_H, -1, "Hardlink"),
@@ -89,27 +89,7 @@ class TestClass:
             data.append(index.data(Qt.DisplayRole))
         assert data[Column.Processed.index] == expected_processed
 
-    @pytest.mark.parametrize("row, key", [(0, Qt.Key_D),
-                                          (-1, Qt.Key_D)
-                                          ])
-    def test_files_are_deleted(self, row_chosen, row, key, qtbot):
-        # GIVEN actions assigned to some files
-        QTest.keyPress(self.ui, key, Qt.NoModifier, 100)
-        QTest.keyRelease(self.ui, key)
-        data = list()
-        for i in range(7):
-            index = self.ui.model.createIndex(row, i)
-            data.append(index.data(Qt.DisplayRole))
-        assert data[Column.Processed.index] is False
-        # WHEN click Execute Action button
-        QTest.mouseClick(self.ui.pushButton_2, Qt.LeftButton)
-        # THEN files are moved to recycle bin
-        data.clear()
-        for i in range(7):
-            index = self.ui.model.createIndex(row, i)
-            data.append(index.data(Qt.DisplayRole))
-        file_exists = pathlib.Path(data[Column.Path.index]).is_file()
-        assert not file_exists
+
 
     # todo add groups of more than 2 members to test data
     # todo add tests for groups mentioned above
@@ -190,10 +170,11 @@ class TestClass:
     def mark_rows_with_keys(self, rows, keys):
         actions = self.convert_keys_to_actions(keys)
         for row, key, action in zip(rows, keys, actions):
+            if row == -1:
+                row = self.ui.model.rowCount(0) - 1
             self.ui.tableView.selectRow(row)
             QTest.keyPress(self.ui, key, Qt.NoModifier, 100)
             QTest.keyRelease(self.ui, key)
-
             data = list()
             for i in range(7):
                 index = self.ui.model.createIndex(row, i)
@@ -466,3 +447,38 @@ class TestClass:
             #   check that rows with another folder don't have chosen action
             else:
                 assert action_to_check == Action.none
+
+    @pytest.mark.parametrize("row, key", [
+        (0, Qt.Key_D),
+        (-1, Qt.Key_D)
+                                          ])
+    def test_files_are_deleted(self, main_window_displayed, row, key, qtbot):
+        # GIVEN main window displayed
+        # WHEN action assigned to files
+        self.mark_rows_with_keys([row], [key])
+        # QTest.keyPress(self.ui, key, Qt.NoModifier, 100)
+        # QTest.keyRelease(self.ui, key)
+        data = list()
+        for i in range(7):
+            index = self.ui.model.createIndex(row, i)
+            data.append(index.data(Qt.DisplayRole))
+        assert data[Column.Processed.index] is False
+        # AND click Execute Action button
+        # Watch for the app.worker.finished signal, then start the worker.
+        with qtbot.waitSignal(self.ui.files_processor_worker.finished, timeout=10000) as blocker:
+            # blocker.connect(self.ui.files_processor_worker.failed)  # Can add other signals to blocker
+            QTest.mouseClick(self.ui.pushButton_2, Qt.LeftButton)
+            # app.worker.start()
+            # Test will block at this point until signal is emitted or
+            # 10 seconds has elapsed
+        # QTest.mouseClick(self.ui.pushButton_2, Qt.LeftButton)
+        qtbot.waitSignal(self.ui.files_processor_worker.finished, 10000)
+        # THEN files are moved to recycle bin
+        data.clear()
+        for i in range(7):
+            index = self.ui.model.createIndex(row, i)
+            data.append(index.data(Qt.DisplayRole))
+        print(self.ui.model._data)
+        assert data[Column.Processed.index] is True
+        file_exists = pathlib.Path(data[Column.Path.index]).is_file()
+        assert not file_exists

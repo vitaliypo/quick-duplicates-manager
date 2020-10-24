@@ -86,6 +86,8 @@ class TableModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def data(self, index, role):
+        # row = index.row()
+        # column = index.column()
         if role == Qt.DisplayRole:
             # See below for the nested-list data structure.
             # .row() indexes into the outer list,
@@ -93,6 +95,8 @@ class TableModel(QtCore.QAbstractTableModel):
             value = self._data[index.row()][index.column()]
             if isinstance(value, pathlib.Path):
                 return str(value)
+            elif isinstance(value, Action):  # todo exclude None value - display empty value instead
+                return value.value
             return value
         if role == Qt.BackgroundRole:
             value = self._data[index.row()][0]
@@ -128,6 +132,7 @@ class TableModel(QtCore.QAbstractTableModel):
             last_index_of_group = self.createIndex(group_indexes[-1].row(), Column.Processed.index)
 
             self.dataChanged.emit(first_index_of_group, last_index_of_group)
+            # self.layoutChanged.emit()
 
             return True
         return QtCore.QAbstractTableModel.setData(self, index, value, role)
