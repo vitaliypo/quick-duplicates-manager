@@ -17,15 +17,16 @@ So I decided to try make my own "perfect" tool for that purpose.
 * Rules validation and errors highlight with navigation (Previous/Next error)
 * Actions execution (actual deletion of files to recycle bin and creation of hardlinks)
 * Count of groups of duplicates which have no actions assigned yet (aka "how much more groups I have to check?")
-* UI tests
+* ~~UI tests~~ (are broken now)
 * Loading CloneSpy duplicates list by user's choice
 * Open location of selected file or location of all files in selected group (only proof of concept is already implemented - need to open actual location instead of hardcoded)
+* Progress bar for files processing (needs testing)
 
 ## Features I want to implement in the nearest future:
-* Progress bar for files processing (need to put files processing into separate thread)
 * Validation of possibility to create Hard links (e.g. files are on the same partition, on NTFS filesystem, etc...)
 * Refactor current code, make better structuring of classes and methods
-* More UI tests :)
+* Set up Test environment which contains all necessary data for UI auto tests
+* Fix UI tests
 
 ## Features to implement even later:
 * Duplicates search

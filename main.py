@@ -1,6 +1,9 @@
 import os
+import random
 import subprocess
-import sys  # needed to pass arvg (cmd argumants) to QApplication
+import sys  # needed to pass arvg (cmd arguments) to QApplication
+import threading
+import time
 from collections import Counter
 from operator import lt, gt
 
@@ -21,6 +24,9 @@ def get_duplicates_list(filepath):
 
 
 class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
+
+    nthreads = 1
+
     def __init__(self, results_file_path="./resources/CloneSpyResult.txt"):
 
         super().__init__()
@@ -34,7 +40,11 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.OpenResults.triggered.connect(self.browse_results_file)
         self.actionDelete_sibling_duplicates.triggered.connect(self.mark_siblings_delete)
         self.actionHardlink_sibling_duplicates.triggered.connect(self.mark_siblings_hardlink)
-        self.pushButton_2.clicked.connect(self.process_files)
+        self.pushButton_2.clicked.connect(self.start_files_processing)
+        self.process_files_thread = None
+        self.files_processor_worker = None
+        self.works = [0]
+
         self.btn_next_error.clicked.connect(self.select_next_error_row)
         self.btn_previous_error.clicked.connect(self.select_previous_error_row)
         self.btn_next_group.clicked.connect(self.select_next_group_without_action)
@@ -357,51 +367,89 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             path_string = self.find_file_location(index.row())
             self.open_file_location(path_string)
 
-    def process_files(self):
-        print("process_files started")
-        groups_exterminated = self.groups_exterminated()
-        if len(groups_exterminated) > 0:
-            print(groups_exterminated)
-            groups_exterminated_strings = list()
-            for group in groups_exterminated:
-                groups_exterminated_strings.append(str(group))
-            message = "All members of following ranges will be removed\n" + "\n".join(
-                groups_exterminated_strings) + "\nContinue?"
-            self.files_exterminated_question_window.setText(message)
-            print(self.files_exterminated_question_window)
-            answer = self.files_exterminated_question_window.exec()
-            # self.files_exterminated_question_window.show()
-            print(self.files_exterminated_question_window)
-            print(answer)
-            if answer == QMessageBox.Yes:
-                pass
-            else:
-                return
-        row_count = self.model.rowCount(0)
-        for row in range(row_count):
-            processed_row = Column.Processed.index
-            processed_index = self.model.createIndex(row, processed_row)
-            processed_value = self.model.data(processed_index, Qt.EditRole)
-            if not processed_value:
-                index = self.model.createIndex(row, Column.Action.index)
-                action = self.model.data(index, Qt.DisplayRole)
-                if action is not Action.none:
-                    if action == Action.delete:
-                        print("Delete file", row)
-                        file = self.model.createIndex(row, Column.Path.index).data(Qt.DisplayRole)
-                        send2trash(file)
-                        self.mark_processed(row)
+    def handleProgress(self, signal):
+        """you can add any logic you want here,
+        it will be executed in the main thread
+        """
+        index, progress = signal
+        self.works[index] = progress
+        rows = self.model.rowCount(0)
+        value = progress / rows * 100
+        # for work in self.works:
+        #     value += work
+        # value /= float(self.nthreads)
+        # management of special cases
+        if value > 100:
+            # self.progressBar.hide()
+            return
+        self.progressBar.setValue(int(value))
+        print('progress (ui) thread: %s  (value: %d)' % (threading.current_thread().name, value))
 
-                    elif action == Action.hardlink:
-                        print("Hardlink file")
-                        expected_path_index = self.model.createIndex(row, Column.Path.index)
-                        source_for_hardlink_index = self.hardlink_index_to_source_index[expected_path_index]
-                        hardlink_path = expected_path_index.data(Qt.EditRole)
-                        source_for_hardlink_path = source_for_hardlink_index.data(Qt.EditRole)
-                        send2trash(str(hardlink_path))
-                        os.link(source_for_hardlink_path, hardlink_path)
-                        self.mark_processed(row)
-                        self.mark_processed(source_for_hardlink_index.row())
+    def buildWorker(self, index):
+        thread = QtCore.QThread()
+        worker = FilesProcessor(index, self)
+        worker.updateProgress.connect(self.handleProgress)
+        # worker.startProcessing.connect(self.process_files)
+        worker.moveToThread(thread)
+        thread.started.connect(worker.work)
+        worker.finished.connect(thread.quit)
+        # QtCore.QMetaObject.connectSlotsByName(self)
+        self.process_files_thread = thread
+        self.files_processor_worker = worker
+
+    # def runThreads(self):
+    #     for thread in self.process_files_thread:
+    #         thread.start()
+
+    def start_files_processing(self):
+        self.buildWorker(0)
+        self.process_files_thread.start()
+
+    # def process_files(self):
+    #     print("process_files started")
+    #     groups_exterminated = self.groups_exterminated()
+    #     if len(groups_exterminated) > 0:
+    #         print(groups_exterminated)
+    #         groups_exterminated_strings = list()
+    #         for group in groups_exterminated:
+    #             groups_exterminated_strings.append(str(group))
+    #         message = "All members of following ranges will be removed\n" + "\n".join(
+    #             groups_exterminated_strings) + "\nContinue?"
+    #         self.files_exterminated_question_window.setText(message)
+    #         print(self.files_exterminated_question_window)
+    #         answer = self.files_exterminated_question_window.exec()
+    #         # self.files_exterminated_question_window.show()
+    #         print(self.files_exterminated_question_window)
+    #         print(answer)
+    #         if answer == QMessageBox.Yes:
+    #             pass
+    #         else:
+    #             return
+    #
+    #     row_count = self.model.rowCount(0)
+    #     for row in range(row_count):
+    #         processed_index = self.model.createIndex(row, Column.Processed.index)
+    #         processed_value = self.model.data(processed_index, Qt.EditRole)
+    #         if not processed_value:
+    #             index = self.model.createIndex(row, Column.Action.index)
+    #             action = self.model.data(index, Qt.DisplayRole)
+    #             if action is not Action.none:
+    #                 if action == Action.delete:
+    #                     print("Delete file", row)
+    #                     file = self.model.createIndex(row, Column.Path.index).data(Qt.DisplayRole)
+    #                     send2trash(file)
+    #                     self.mark_processed(row)
+    #
+    #                 elif action == Action.hardlink:
+    #                     print("Hardlink file")
+    #                     expected_path_index = self.model.createIndex(row, Column.Path.index)
+    #                     source_for_hardlink_index = self.hardlink_index_to_source_index[expected_path_index]
+    #                     hardlink_path = expected_path_index.data(Qt.EditRole)
+    #                     source_for_hardlink_path = source_for_hardlink_index.data(Qt.EditRole)
+    #                     send2trash(str(hardlink_path))
+    #                     os.link(source_for_hardlink_path, hardlink_path)
+    #                     self.mark_processed(row)
+    #                     self.mark_processed(source_for_hardlink_index.row())
 
     def mark_processed(self, current_row):
         index = self.model.createIndex(current_row, 6)
@@ -449,6 +497,77 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
                 last_index_recorded_row = indexes_of_group[-1].row()
         return groups_to_be_exterminated
+
+
+class FilesProcessor(QtCore.QObject):
+    """the worker for a threaded process;
+    (this is created in the main thread and
+    then moved to a QThread, before starting it)
+    """
+
+    updateProgress = QtCore.pyqtSignal(tuple)
+    finished = QtCore.pyqtSignal(int)
+    # startProcessing = QtCore.pyqtSignal()
+
+    def __init__(self, index, app):
+        super(FilesProcessor, self).__init__()
+        # store the Worker index (for thread tracking
+        # and to compute the overall progress)
+        self.id = index
+        self.link_to_app_class = app
+
+    def work(self):
+        groups_exterminated = self.link_to_app_class.groups_exterminated()
+        # ask user for confirmation in case if some duplicate groups will be removed completely
+        if len(groups_exterminated) > 0:
+            print(groups_exterminated)
+            groups_exterminated_strings = list()
+            for group in groups_exterminated:
+                groups_exterminated_strings.append(str(group))
+            message = "All members of following ranges will be removed\n" + "\n".join(
+                groups_exterminated_strings) + "\nContinue?"
+            self.link_to_app_class.files_exterminated_question_window.setText(message)
+            print(self.link_to_app_class.files_exterminated_question_window)
+            answer = self.link_to_app_class.files_exterminated_question_window.exec()
+            # self.link_to_app_class.files_exterminated_question_window.show()
+            print(self.link_to_app_class.files_exterminated_question_window)
+            print(answer)
+            if answer == QMessageBox.Yes:
+                pass
+            else:
+                return
+
+        row_count = self.link_to_app_class.model.rowCount(0)
+        rows_walked = 0
+        for row in range(row_count):
+            time.sleep(random.random() * .2)  # testing/dev imitation of work, todo remove in prod
+            processed_index = self.link_to_app_class.model.createIndex(row, Column.Processed.index)
+            processed_value = self.link_to_app_class.model.data(processed_index, Qt.EditRole)
+            if not processed_value:
+                index = self.link_to_app_class.model.createIndex(row, Column.Action.index)
+                action = self.link_to_app_class.model.data(index, Qt.DisplayRole)
+                if action is not Action.none:
+                    if action == Action.delete:
+                        print("Delete file", row)
+                        file = self.link_to_app_class.model.createIndex(row, Column.Path.index).data(Qt.DisplayRole)
+                        send2trash(file)
+                        self.link_to_app_class.mark_processed(row)
+
+                    elif action == Action.hardlink:
+                        print("Hardlink file")
+                        expected_path_index = self.link_to_app_class.model.createIndex(row, Column.Path.index)
+                        source_for_hardlink_index = \
+                            self.link_to_app_class.hardlink_index_to_source_index[expected_path_index]
+                        hardlink_path = expected_path_index.data(Qt.EditRole)
+                        source_for_hardlink_path = source_for_hardlink_index.data(Qt.EditRole)
+                        send2trash(str(hardlink_path))
+                        os.link(source_for_hardlink_path, hardlink_path)
+                        self.link_to_app_class.mark_processed(row)
+                        self.link_to_app_class.mark_processed(source_for_hardlink_index.row())
+            rows_walked += 1
+            self.updateProgress.emit((self.id, rows_walked))
+
+        self.finished.emit(1)
 
 
 def main():
