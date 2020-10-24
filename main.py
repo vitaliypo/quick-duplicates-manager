@@ -156,17 +156,17 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             index_to_action = dict()
             for group_index in indexes_of_current_group:
                 action_index = self.model.createIndex(group_index.row(), Column.Action.index)
-                actions.append(action_index.data(Qt.DisplayRole))
-                index_to_action[group_index] = action_index.data(Qt.DisplayRole)
+                actions.append(action_index.data(Qt.EditRole))
+                index_to_action[group_index] = action_index.data(Qt.EditRole)
             counter = Counter(actions)
 
             # TC07
-            if counter.get(Action.source.value, 0) > 1:
+            if counter.get(Action.source, 0) > 1:
                 error_to_raise = ValidationErrorType.more_than_one_source_in_group
                 action_to_find = Action.source
                 row_causing_error = None
                 for key, value in index_to_action.items():
-                    if value == action_to_find.value:
+                    if value == action_to_find:
                         row_causing_error = key.row()
                         break
                 new_error = ValidationError(error_to_raise, row_causing_error)
@@ -176,11 +176,11 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             if counter.get(Action.none) == 1:
                 action_to_assign = None
                 error_to_raise = None
-                if counter.get(Action.hardlink.value, 0) > 0 and counter.get(Action.source.value) is None:
+                if counter.get(Action.hardlink, 0) > 0 and counter.get(Action.source) is None:
                     action_to_assign = Action.source
                     error_to_raise = ValidationErrorType.source_for_hardlink_absence
-                elif counter.get(Action.source.value, 0) == 1 and counter.get(
-                        Action.hardlink.value) is None:  # todo check if should be == 1 instead of > 0
+                elif counter.get(Action.source, 0) == 1 and counter.get(
+                        Action.hardlink) is None:  # todo check if should be == 1 instead of > 0
                     action_to_assign = Action.hardlink
                     error_to_raise = ValidationErrorType.hardlink_absence
                 if action_to_assign is not None:
@@ -193,7 +193,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
                             row_causing_error = key.row()
                     index_of_action_to_change = self.model.createIndex(row_to_change, Column.Action.index)
                     if autocomplete_actions:
-                        self.assign_action_to_row(action_to_assign.value, index_of_action_to_change)
+                        self.assign_action_to_row(action_to_assign, index_of_action_to_change)
                     else:
                         new_error = ValidationError(error_to_raise, row_causing_error)
                         self.current_errors.append(new_error)
@@ -201,24 +201,24 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             # TC03 + TC06
             if counter.get(Action.none, 0) > 1:
                 # collect groups without actions to one list
-                if counter.get(Action.source.value, 0) == 0 \
-                        and counter.get(Action.hardlink.value, 0) == 0 \
-                        and counter.get(Action.delete.value, 0) == 0:
+                if counter.get(Action.source, 0) == 0 \
+                        and counter.get(Action.hardlink, 0) == 0 \
+                        and counter.get(Action.delete, 0) == 0:
                     self.groups_without_action_first_row_number.add(indexes_of_current_group[0].row())
 
                 action_exists = None
                 error_type = None
-                if counter.get(Action.hardlink.value, 0) > 0 and counter.get(Action.source.value) is None:
+                if counter.get(Action.hardlink, 0) > 0 and counter.get(Action.source) is None:
                     action_exists = Action.hardlink
                     error_type = ValidationErrorType.source_for_hardlink_absence
-                elif counter.get(Action.source.value, 0) > 0 and counter.get(Action.hardlink.value) is None:
+                elif counter.get(Action.source, 0) > 0 and counter.get(Action.hardlink) is None:
                     action_exists = Action.source
                     error_type = ValidationErrorType.hardlink_absence
 
                 if action_exists is not None and error_type is not None:
                     row_causing_error = 0
                     for key, value in index_to_action.items():
-                        if value == action_exists.value:
+                        if value == action_exists:
                             row_causing_error = key.row()
                             break
                     for error in self.current_errors:
@@ -231,24 +231,24 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
             if counter.get(Action.none, 0) == 0:
                 error_to_raise = None
                 action_to_find = None
-                if counter.get(Action.hardlink.value, 0) >= 1 and counter.get(Action.source.value, 0) == 0:
+                if counter.get(Action.hardlink, 0) >= 1 and counter.get(Action.source, 0) == 0:
                     error_to_raise = ValidationErrorType.source_for_hardlink_absence
                     action_to_find = Action.hardlink
-                if counter.get(Action.hardlink.value, 0) == 0 and counter.get(Action.source.value, 0) == 1:
+                if counter.get(Action.hardlink, 0) == 0 and counter.get(Action.source, 0) == 1:
                     error_to_raise = ValidationErrorType.hardlink_absence
                     action_to_find = Action.source
                 if error_to_raise is not None:
                     row_causing_error = None
                     for key, value in index_to_action.items():
-                        if value == action_to_find.value:
+                        if value == action_to_find:
                             row_causing_error = key.row()
                             break
                     new_error = ValidationError(error_to_raise, row_causing_error)
                     self.current_errors.append(new_error)
 
-            if counter.get(Action.source.value, 0) > 0 \
-                    or counter.get(Action.hardlink.value, 0) > 0 \
-                    or counter.get(Action.delete.value, 0) > 0:
+            if counter.get(Action.source, 0) > 0 \
+                    or counter.get(Action.hardlink, 0) > 0 \
+                    or counter.get(Action.delete, 0) > 0:
                 self.groups_without_action_first_row_number.discard(indexes_of_current_group[0].row())
 
         new_error_label_string = "Errors found: " + str(len(self.current_errors))

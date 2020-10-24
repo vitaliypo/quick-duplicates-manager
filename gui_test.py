@@ -472,7 +472,7 @@ class TestClass:
             # Test will block at this point until signal is emitted or
             # 10 seconds has elapsed
         # QTest.mouseClick(self.ui.pushButton_2, Qt.LeftButton)
-        qtbot.waitSignal(self.ui.files_processor_worker.finished, 10000)
+        # qtbot.waitSignal(self.ui.files_processor_worker.finished, 10000)
         # THEN files are moved to recycle bin
         data.clear()
         for i in range(7):
