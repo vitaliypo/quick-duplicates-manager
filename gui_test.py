@@ -446,7 +446,7 @@ class TestClass:
                 assert action_to_check == action
             #   check that rows with another folder don't have chosen action
             else:
-                assert action_to_check == Action.none
+                assert action_to_check != action
 
     @pytest.mark.parametrize("row, key", [
         (0, Qt.Key_D),

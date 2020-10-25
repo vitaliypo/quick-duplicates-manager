@@ -293,7 +293,7 @@ class ExampleApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
                     # self.model.setData(set_index, action)
 
     def mark_siblings_delete(self):
-        self.mark_siblings(Action.delete.value)
+        self.mark_siblings(Action.delete)
         self.refresh_errors_list()
 
     def mark_siblings_hardlink(self):
