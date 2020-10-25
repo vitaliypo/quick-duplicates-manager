@@ -37,6 +37,7 @@ class TestClass:
     def teardown_method(self):
         rmtree(".\\resources\\test_data\\temp_dir")
 
+    # todo check if this test should be left/removed/fixed
     @pytest.mark.parametrize("key, row, expected_action", [(Qt.Key_D, 0, "Delete"),
                                                            (Qt.Key_H, -1, "Hardlink"),
                                                            (Qt.Key_U, 0, None)
@@ -65,6 +66,7 @@ class TestClass:
             row = self.ui.model.rowCount(0) - 1
         self.ui.tableView.selectRow(row)
 
+    # todo check if this test should be left/removed/fixed
     @pytest.mark.parametrize("key, row, expected_action, expected_processed", [(Qt.Key_D, 0, "Delete", True),
                                                                                (Qt.Key_H, -1, "Hardlink", True),
                                                                                (Qt.Key_U, 5, None, False)
@@ -93,6 +95,7 @@ class TestClass:
 
     # todo add groups of more than 2 members to test data
     # todo add tests for groups mentioned above
+    # todo check if this test should be left/removed/fixed
     @pytest.mark.parametrize("group_to_mark, keys", [(1, [Qt.Key_D]),
                                                      (-1, [Qt.Key_D]),
                                                      (1, [Qt.Key_D, Qt.Key_H]),
@@ -252,6 +255,7 @@ class TestClass:
         rows = (index.row() for index in indexes_of_group)
         self.mark_rows_with_keys(rows, keys)
 
+    # todo fix this test or functionality
     @pytest.mark.parametrize("rows, keys, groups_in_prompt", [
         # TC04
         ([0, 1, 2], [Qt.Key_D, Qt.Key_D, Qt.Key_D], "1"),
