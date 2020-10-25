@@ -450,8 +450,7 @@ class TestClass:
 
     @pytest.mark.parametrize("row, key", [
         (0, Qt.Key_D),
-        (-1, Qt.Key_D)
-                                          ])
+        (-1, Qt.Key_D)])
     def test_files_are_deleted(self, main_window_displayed, row, key, qtbot):
         # GIVEN main window displayed
         # WHEN action assigned to files
