@@ -6,10 +6,10 @@
 No, it can't search for duplicates (yet?). :)
 
 - [Background](#background)
-- [Features implemented](#key-features-implemented:)
-- [Features in process of implementation](#features-i-want-to-implement-in-the-nearest-future:)
-- [Features to be implemented in future](#features-to-implement-even-later:)
-- [Want to contribute?](#want-to-contribute?)
+- [Features implemented](#key-features-implemented)
+- [Features in process of implementation](#features-i-want-to-implement-in-the-nearest-future)
+- [Features to be implemented in future](#features-to-implement-even-later)
+- [Want to contribute?](#want-to-contribute)
 
 ## Background
 I was unhappy with the way duplicate managers usually handle the process of viewing duplicates list and applying actions on them.
