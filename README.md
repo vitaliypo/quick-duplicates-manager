@@ -16,7 +16,10 @@ I was unhappy with the way duplicate managers usually handle the process of view
 Most of such apps focus on the duplicates detection but not on how user decides what he wants to do with those duplicates later. It is especially painful to try to manage thousands of duplicate files.
 So I decided to try make my own "perfect" tool for that purpose.
 
-[alttext]: [resources/main_window.png] "another alt text?"
+ Here's how it looks like so far:
+ 
+![alt text](resources/main_window.png "Main window of the app")
+
 
 ## Key features implemented:
 * Ability to open and parse CloneSpy duplicates list file to create a table representation of duplicates
