@@ -5,9 +5,13 @@
 ... but with group operations, quick actions assignment with hotkeys and support of hard links.  
 No, it can't search for duplicates (yet?). :)
 
+[Background](#background)
+
+[Features](#key-features-implemented:)
+
 ## Background
-I was unhappy with the way duplicate managers usually handle the process of viewing duplicates list and assigning actions to them.
-Most of them focus on the duplicates search but not on comfortable and intuitive actions assignment process. It is especially painful to assign actions to thousands of duplicate files.  
+I was unhappy with the way duplicate managers usually handle the process of viewing duplicates list and applying actions on them.
+Most of such apps focus on the duplicates detection but not on how user decides what he wants to do with those duplicates later. It is especially painful to try to manage thousands of duplicate files.
 So I decided to try make my own "perfect" tool for that purpose.
 
 ## Key features implemented:
@@ -35,6 +39,7 @@ So I decided to try make my own "perfect" tool for that purpose.
 * Linux/MacOS support
 * ... and more
 
+<!--
 ## All info below is just a draft, don't try to find anything useful there.
 
 ## Getting Started
@@ -104,3 +109,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 * Hat tip to anyone whose code was used
 * Inspiration
 * etc
+-->
