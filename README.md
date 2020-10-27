@@ -7,7 +7,9 @@ No, it can't search for duplicates (yet?). :)
 
 [Background](#background)
 
-[Features](#key-features-implemented)
+[Features](#key-features-implemented:)
+
+
 
 ## Background
 I was unhappy with the way duplicate managers usually handle the process of viewing duplicates list and applying actions on them.
