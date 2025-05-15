@@ -1,4 +1,4 @@
-# Warning: The project is in development status. Using it may cause data loss.
+# Warning: The project is in abandoned status. Using it is not recommended and may cause data loss.
 
 ## Yes, this is another duplicate files manager
 
